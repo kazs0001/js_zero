@@ -2,13 +2,10 @@ import { Player } from './player';
 import World from './world';
 import { DebugView } from "./debug_view";
 
+import * as cannon from "cannon";
 import * as BABYLON from "babylonjs";
 import 'babylonjs-loaders';
 
-import * as cannon from "cannon";
-
-// window.CANNON = require('cannon');
-// window.Ammo = require('ammo.js');
 
 
 class Game {
@@ -35,7 +32,6 @@ class Game {
             }
         });
     
-
         this.assetManager = new BABYLON.AssetsManager(this.scene);
 
         // TODO why does ammo.js not work / fs not found error

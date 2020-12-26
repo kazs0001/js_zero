@@ -22,7 +22,7 @@ export default class World {
 
         this.gravity = -9.81;
 
-        this.player_start_position = new BABYLON.Vector3(0,15,0);
+        this.player_start_position = new BABYLON.Vector3(0,1,0);
         this.camera_start_position = new BABYLON.Vector3(30,30,30);
 
         // Add a camera to the scene and attach it to the canvas
@@ -41,8 +41,8 @@ export default class World {
         // console.log(this.shadowGenerator)
 
         this.collision_meshes = [];
-        var ground_material = new BABYLON.PBRMetallicRoughnessMaterial("ground_material", this.scene);
-        // ground_material.wireframe = true;
+        var ground_material = new BABYLON.StandardMaterial("ground_material", this.scene);
+        ground_material.wireframe = true;
 
         // ground_material.specularPower = 0;
         // ground_material.emissiveColor = new BABYLON.Color3(1,1,1);
@@ -56,14 +56,22 @@ export default class World {
         // this.collision_meshes.push(this.plane);
         // this.plane.receiveShadows = true;
 
-        this.box = BABYLON.MeshBuilder.CreateBox("GroundBox", {size: 2}, this.scene);
-        this.box.position = new BABYLON.Vector3(0, 1, 5);
+        this.box = BABYLON.MeshBuilder.CreateBox("GroundBox", {size: 20}, this.scene);
+        this.box.position = new BABYLON.Vector3(0, -10, 0);
         this.box.checkCollisions = true;
         this.box.material = ground_material;
         this.box.receiveShadows = true;
         this.collision_meshes.push(this.box); 
 
-
+        this.box.physicsImpostor = new BABYLON.PhysicsImpostor(
+            this.box, 
+            BABYLON.PhysicsImpostor.BoxImpostor, 
+            { 
+                mass: 0,
+                friction: 0
+            }, 
+            scene);
+    
 
         var levelLoadTask = assetManager.addMeshTask(
             "LevelModel", 
@@ -87,22 +95,22 @@ export default class World {
             });
         }
 
-        var boxLoadTask = assetManager.addMeshTask(
-            "BoxModel", 
-            null, 
-            './', 
-            box_model);   
+        // var boxLoadTask = assetManager.addMeshTask(
+        //     "BoxModel", 
+        //     null, 
+        //     './', 
+        //     box_model);   
 
-            boxLoadTask.onSuccess = () => {
-            console.log(boxLoadTask);
-            console.log("boxTask: ", boxLoadTask);
-            boxLoadTask.loadedMeshes.forEach((mesh) => {
-                this.collision_meshes.push(mesh);
-                console.log("Add Mesh to Collision: ", mesh);
-                mesh.checkCollisions = true;
-                // mesh.material.wireframe = true;
-            });
-        }
+        //     boxLoadTask.onSuccess = () => {
+        //     console.log(boxLoadTask);
+        //     console.log("boxTask: ", boxLoadTask);
+        //     boxLoadTask.loadedMeshes.forEach((mesh) => {
+        //         this.collision_meshes.push(mesh);
+        //         console.log("Add Mesh to Collision: ", mesh);
+        //         mesh.checkCollisions = true;
+        //         mesh.material.wireframe = true;
+        //     });
+        // }
 
         //     levelLoadTask.loadedMeshes.forEach((mesh) => {
 
