@@ -5,6 +5,8 @@ import { DebugView } from "./debug_view";
 import * as BABYLON from "babylonjs";
 import 'babylonjs-loaders';
 
+import * as cannon from "cannon";
+
 // window.CANNON = require('cannon');
 // window.Ammo = require('ammo.js');
 
@@ -37,8 +39,9 @@ class Game {
         this.assetManager = new BABYLON.AssetsManager(this.scene);
 
         // TODO why does ammo.js not work / fs not found error
-        // var physicsPlugin = new BABYLON.AmmoJSPlugin();
-        // this.scene.enablePhysics(gravityVector, physicsPlugin);
+        var physicsPlugin = new BABYLON.CannonJSPlugin(true, 10, cannon);
+        this.gravityVector = new BABYLON.Vector3(0,-9.81, 0);
+        this.scene.enablePhysics(this.gravityVector, physicsPlugin);
         
 
         // create the level to play in ----------------------------------------

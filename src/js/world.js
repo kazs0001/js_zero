@@ -12,6 +12,8 @@ import medieval_theme_02 from '../assets/music/medieval_theme_02.mp3';
 import test_level_model from '../assets/models/test_level_2.gltf';
 import box_model from '../assets/models/box.gltf';
 
+import * as BABYLON from "babylonjs";
+
 export default class World {
     constructor(scene, assetManager) {
         
