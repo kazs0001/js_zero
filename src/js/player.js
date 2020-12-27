@@ -8,6 +8,7 @@ import sprint_sound from '../assets/sound/simple_sprint.mp3';
 
 
 import { KEYCODE } from "./key_codes";
+import { cssNumber } from "jquery";
 
 
 class Player {
@@ -101,28 +102,32 @@ class Player {
                 mass: 1, 
                 damping: 0, 
                 restitution: 0,
-                friction: 0.5
+                friction: 5
 
             }, 
             scene);
 
-        this.characterBox.physicsImpostor.onCollideEvent = (self, other) => {
+        this.characterBox.physicsImpostor.onCollideEvent = null;
+        this.characterBox.physicsImpostor.onCollide( function(e) {
             this.falling = false;
-        }
+            this.startIdleAni();
+            console.log("player hit something")
+        });
 
 
-        // this.characterBox.physicsImpostor.executeNativeFunction(function (world, body) {
+        this.characterBox.physicsImpostor.executeNativeFunction(function (world, body) {
+            body.setAngularFactor( 0, 0, 0 );
         //     body.fixedRotation = true;
         //     body.updateMassProperties();
 
-        // });
+        });
 
 
     
         // player internal movement state -------------------------------------
         this.falling = true;
         this.fallingVel = 0;
-        this.jumpSpeed = 10;
+        this.jumpSpeed = 400;
         this.moveVel = 0;
         this.moveSpeedMax = 5; 
         this.sprintSpeedMax = 12;
@@ -250,15 +255,16 @@ class Player {
         }  
         if (keyEvent.keyCode == KEYCODE.UP || keyEvent.keyCode == KEYCODE.W) {
             this.inputMoveVec.z = keyPressed ? -1 : 0;
-            console.log("up")
         }  
         if (keyEvent.keyCode == KEYCODE.DOWN || keyEvent.keyCode == KEYCODE.S) {
             this.inputMoveVec.z = keyPressed ? 1 : 0;
         }  
-        if (keyEvent.keyCode == KEYCODE.SPACEBAR && !this.falling && keyPressed){
+        if (keyEvent.keyCode == KEYCODE.SPACEBAR){ // && !this.falling && keyPressed){
             this.falling = true;
+            console.log("jump")
             if (this.animation && !this.jumpAni.isPlaying) {
                 this.startJumpAni();
+                this.characterBox.physicsImpostor.applyForce( new BABYLON.Vector3( 0, this.jumpSpeed, 0), new BABYLON.Vector3(0,0,0));
             } 
         }
         // if (keyEvent.keyCode == 17) {

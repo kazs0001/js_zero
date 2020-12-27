@@ -3,7 +3,8 @@ import World from './world';
 import { DebugView } from "./debug_view";
 
 import * as cannon from "cannon";
-import * as Ammo from "ammo.js";
+
+import * as Ammo from "./external/ammo.js";
 import * as BABYLON from "babylonjs";
 import 'babylonjs-loaders';
 
@@ -35,10 +36,12 @@ class Game {
     
         this.assetManager = new BABYLON.AssetsManager(this.scene);
 
+ 
         //  var physicsPlugin = new BABYLON.CannonJSPlugin(true, 10, cannon);
-        var physicsPlugin = new BABYLON.AmmoJSPlugin(true, Ammo );
+        var physicsPlugin = new BABYLON.AmmoJSPlugin(false, Ammo );
         this.gravityVector = new BABYLON.Vector3(0,-9.81, 0);
         this.scene.enablePhysics(this.gravityVector, physicsPlugin);
+
         
 
         // create the level to play in ----------------------------------------

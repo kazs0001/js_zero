@@ -15,6 +15,7 @@
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "ammo.js": "github:kripken/ammo.js",
+    "asm.js": "0.0.2",
     "babel-loader": "^8.2.2",
     "cannon": "^0.6.2",
     "css-loader": "^3.6.0",
