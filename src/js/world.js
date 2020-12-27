@@ -68,7 +68,7 @@ export default class World {
             BABYLON.PhysicsImpostor.BoxImpostor, 
             { 
                 mass: 0,
-                friction: 0
+                friction: 0.1
             }, 
             scene);
     

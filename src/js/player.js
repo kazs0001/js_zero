@@ -97,13 +97,17 @@ class Player {
             this.characterBox, 
             BABYLON.PhysicsImpostor.BoxImpostor, 
             { 
-                mass: this.characterWeight*10, 
-                damping: 5000, 
+                mass: 1, 
+                damping: 1, 
                 restitution: 0,
-                friction: 0.1
+                friction: 1
 
             }, 
             scene);
+
+        this.characterBox.physicsImpostor.onCollideEvent = (self, other) => {
+            this.falling = false;
+        }
     
         // player internal movement state -------------------------------------
         this.falling = true;
@@ -243,7 +247,6 @@ class Player {
         }  
         if (keyEvent.keyCode == KEYCODE.SPACEBAR && !this.falling && keyPressed){
             this.falling = true;
-            this.fallingVel = this.jumpSpeed * 80 / this.getTotalWeight();
             if (this.animation && !this.jumpAni.isPlaying) {
                 this.startJumpAni();
             } 
@@ -254,11 +257,15 @@ class Player {
         //         this.inputMoveVec.x = 0;
         //     }
         // }      
+
+        // TODO: sprint bug: should be possible only to sprint forwards
         if (keyEvent.keyCode == KEYCODE.SHIFT) {
-            this.sprint = keyPressed ? true : false;
-        }      
-    
-        console.log("Input vector", this.inputMoveVec, this.inputMoveVec.length());
+            if (keyPressed && this.inputMoveVec.z == -1 && this.inputMoveVec.x == 0) {
+                this.sprint = true;
+            } else {
+                this.sprint = false;
+            }
+        }          
     }
     
 
@@ -266,9 +273,8 @@ class Player {
     update(dTimeMs) {
         const dTimeSec = dTimeMs / 1000;
 
-        // ugly workaround to lock rotation 
+        // ugly workaround to lock rotation on physic imposter
         this.characterBox.physicsImpostor.setAngularVelocity( new BABYLON.Vector3(0,0,0) );
-
         
         /// setLinearVelocity, stops character if accelerated externally
         var heading = Math.PI/2 -  this.camera.alpha;
@@ -278,7 +284,14 @@ class Player {
             0);
         var velocity = this.inputMoveVec.clone();
         velocity = BABYLON.Vector3.TransformCoordinates(velocity, rotation_matrix);
-        this.characterBox.physicsImpostor.setLinearVelocity( velocity.normalize().scale(this.sprint ? this.sprintSpeedMax : this.moveSpeedMax) );
+        velocity = velocity.normalize();
+        velocity = velocity.scale(this.sprint ? this.sprintSpeedMax : this.moveSpeedMax);
+        
+        /// option 1: set velocity, blocks other impacts
+        this.characterBox.physicsImpostor.setLinearVelocity(velocity);
+
+        /// option 2: applyForce
+        // this.characterBox.physicsImpostor.applyForce(velocity.scale(100), new BABYLON.Vector3(0,0,0));
         
         // copy heading to charcter mesh
         if(this.inputMoveVec.length() > 0) {
@@ -291,6 +304,30 @@ class Player {
             this.mesh.position.z = this.characterBox.position.z;
             this.mesh.position.y = this.characterBox.position.y - 0.9;
         }
+
+
+
+        if (this.animation) {
+            if (!this.falling && this.inputMoveVec.length() > 0.1) {
+                if (this.sprint) {
+                    if (!this.sprintAni.isPlaying) {
+                        this.startSprintAni();
+                    }
+                } else {
+                    if (!this.walkAni.isPlaying) {
+                        this.startWalkAni();
+                    }
+                }
+
+            } else {
+                if (!this.idleAni.isPlaying && !this.falling) {
+                    this.startIdleAni();
+                }
+            }
+        }
+
+
+
 
         // TODO
         // detailed movement model using accelerations
