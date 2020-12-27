@@ -63,7 +63,7 @@ class Player {
         
         
         // physical representation --------------------------------------------
-        this.characterBox = BABYLON.MeshBuilder.CreateBox(
+        this.characterBox = BABYLON.MeshBuilder.CreateSphere(
             "PlayerSphere", 
             {   
                 size: 2
@@ -75,8 +75,9 @@ class Player {
         this.characterHeight = 1.8;
         this.characterWeight = 75.0; //kg
 
-        this.characterBox.scaling.x = this.characterWidth/2;
-        this.characterBox.scaling.z = this.characterDepth/2;
+        this.characterBox.scaling.x = this.characterWidth;
+        this.characterBox.scaling.y = this.characterHeight;
+        this.characterBox.scaling.z = this.characterDepth;
         this.characterBox.position = this.world.player_start_position;
         this.characterBox.checkCollisions = true;
         this.characterBox.ellipsoid = new BABYLON.Vector3(
@@ -95,12 +96,12 @@ class Player {
         
         this.characterBox.physicsImpostor = new BABYLON.PhysicsImpostor(
             this.characterBox, 
-            BABYLON.PhysicsImpostor.BoxImpostor, 
+            BABYLON.PhysicsImpostor.SphereImpostor, 
             { 
                 mass: 1, 
                 damping: 0, 
                 restitution: 0,
-                friction: 0.2
+                friction: 0.5
 
             }, 
             scene);
@@ -110,11 +111,11 @@ class Player {
         }
 
 
-        this.characterBox.physicsImpostor.executeNativeFunction(function (world, body) {
-            body.fixedRotation = true;
-            body.updateMassProperties();
+        // this.characterBox.physicsImpostor.executeNativeFunction(function (world, body) {
+        //     body.fixedRotation = true;
+        //     body.updateMassProperties();
 
-        });
+        // });
 
 
     
@@ -294,7 +295,7 @@ class Player {
             0);
         var velocity = this.inputMoveVec.clone();
         velocity = BABYLON.Vector3.TransformCoordinates(velocity, rotation_matrix);
-        // velocity = velocity.normalize();
+        velocity = velocity.normalize();
         velocity = velocity.scale(this.sprint ? this.sprintSpeedMax : this.moveSpeedMax);
         
         /// option 1: set velocity, blocks other impacts

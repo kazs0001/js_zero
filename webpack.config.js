@@ -8,6 +8,9 @@ module.exports = {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist')
   },
+  node: {
+    fs: "empty"
+  },
   devtool: 'source-map',
   devServer: {
     contentBase: './dist',
