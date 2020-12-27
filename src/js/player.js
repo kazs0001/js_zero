@@ -116,9 +116,12 @@ class Player {
 
 
         this.characterBox.physicsImpostor.executeNativeFunction(function (world, body) {
-            body.setAngularFactor( 0, 0, 0 );
-        //     body.fixedRotation = true;
-        //     body.updateMassProperties();
+            // lock rotations in ammo.js 
+            // body.setAngularFactor( 0, 0, 0 );
+
+            // lock rotations in cannon.js
+            body.fixedRotation = true;
+            body.updateMassProperties();
 
         });
 
