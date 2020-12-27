@@ -98,9 +98,9 @@ class Player {
             BABYLON.PhysicsImpostor.BoxImpostor, 
             { 
                 mass: 1, 
-                damping: 1, 
+                damping: 0, 
                 restitution: 0,
-                friction: 1
+                friction: 0.2
 
             }, 
             scene);
@@ -108,6 +108,15 @@ class Player {
         this.characterBox.physicsImpostor.onCollideEvent = (self, other) => {
             this.falling = false;
         }
+
+
+        this.characterBox.physicsImpostor.executeNativeFunction(function (world, body) {
+            body.fixedRotation = true;
+            body.updateMassProperties();
+
+        });
+
+
     
         // player internal movement state -------------------------------------
         this.falling = true;
@@ -258,13 +267,14 @@ class Player {
         //     }
         // }      
 
-        // TODO: sprint bug: should be possible only to sprint forwards
+        if(this.inputMoveVec.z != -1) {
+            this.sprint = false;
+        }
+        
         if (keyEvent.keyCode == KEYCODE.SHIFT) {
-            if (keyPressed && this.inputMoveVec.z == -1 && this.inputMoveVec.x == 0) {
+            if (keyPressed && this.inputMoveVec.z == -1) {
                 this.sprint = true;
-            } else {
-                this.sprint = false;
-            }
+            } 
         }          
     }
     
@@ -273,8 +283,8 @@ class Player {
     update(dTimeMs) {
         const dTimeSec = dTimeMs / 1000;
 
-        // ugly workaround to lock rotation on physic imposter
-        this.characterBox.physicsImpostor.setAngularVelocity( new BABYLON.Vector3(0,0,0) );
+        // ugly workaround to lock rotation on physic imposter, this is only necessary if we dont use fixedRotation (a cannon.js feature)
+        // this.characterBox.physicsImpostor.setAngularVelocity( new BABYLON.Vector3(0,0,0) );
         
         /// setLinearVelocity, stops character if accelerated externally
         var heading = Math.PI/2 -  this.camera.alpha;
@@ -284,14 +294,14 @@ class Player {
             0);
         var velocity = this.inputMoveVec.clone();
         velocity = BABYLON.Vector3.TransformCoordinates(velocity, rotation_matrix);
-        velocity = velocity.normalize();
+        // velocity = velocity.normalize();
         velocity = velocity.scale(this.sprint ? this.sprintSpeedMax : this.moveSpeedMax);
         
         /// option 1: set velocity, blocks other impacts
-        this.characterBox.physicsImpostor.setLinearVelocity(velocity);
+        // this.characterBox.physicsImpostor.setLinearVelocity(velocity);
 
         /// option 2: applyForce
-        // this.characterBox.physicsImpostor.applyForce(velocity.scale(100), new BABYLON.Vector3(0,0,0));
+        this.characterBox.physicsImpostor.applyForce(velocity.scale(5), new BABYLON.Vector3(0,0,0));
         
         // copy heading to charcter mesh
         if(this.inputMoveVec.length() > 0) {
