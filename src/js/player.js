@@ -115,15 +115,22 @@ class Player {
         });
 
 
-        this.characterBox.physicsImpostor.executeNativeFunction(function (world, body) {
-            // lock rotations in ammo.js 
-            // body.setAngularFactor( 0, 0, 0 );
+        if(this.scene.physicsPlugin) {
+            this.characterBox.physicsImpostor.executeNativeFunction(function (world, body) {
 
-            // lock rotations in cannon.js
-            body.fixedRotation = true;
-            body.updateMassProperties();
-
-        });
+                /// lock rotations in ammo.js 
+                if(typeof body.setAngularFactor  === "function") {
+                    body.setAngularFactor( 0, 0, 0 );
+                }
+    
+                /// lock rotations in cannon.js
+                body.fixedRotation = true;
+                if(typeof body.updateMassProperties  === "function") {
+                    body.updateMassProperties();
+                }
+    
+            });
+        }
 
 
     
