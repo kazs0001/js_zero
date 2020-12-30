@@ -3,7 +3,7 @@ import World from './world';
 import { DebugView } from "./debug_view";
 
 import * as cannon from "cannon";
-import * as Ammo from "ammo.js";
+// import * as Ammo from "ammo.js";
 // import * as Ammo from "./external/ammo.js";
 
 
@@ -40,13 +40,13 @@ class Game {
 
 
         // attach to scene
-        //this.scene.physicsPlugin = new BABYLON.CannonJSPlugin(true, 10, cannon);
-        this.scene.physicsPlugin = new BABYLON.AmmoJSPlugin(false, Ammo );
+        this.scene.physicsPlugin = new BABYLON.CannonJSPlugin(true, 10, cannon);
+        // this.scene.physicsPlugin = new BABYLON.AmmoJSPlugin(false, Ammo );
 
         this.gravityVector = new BABYLON.Vector3(0,-9.81, 0);
         this.scene.enablePhysics(this.gravityVector, this.scene.physicsPlugin);
 
-        
+            
 
         // create the level to play in ----------------------------------------
         this.world = new World(this.scene, this.assetManager);
@@ -106,7 +106,7 @@ class Game {
         if(this.player && !this.paused){
             this.player.update(dTimeMs);
         }
-    }
+    }   
 }
   
 export { Game };

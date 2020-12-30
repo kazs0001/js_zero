@@ -91,7 +91,7 @@ class Player {
     
         this.characterBox.onCollideObservable.add((others) => {
             this.falling = false;
-            // console.log("Ground hit!");
+            console.log("Ground hit!");
         });    
         
         
@@ -107,12 +107,11 @@ class Player {
             }, 
             scene);
 
-        this.characterBox.physicsImpostor.onCollideEvent = null;
-        this.characterBox.physicsImpostor.onCollide( function(e) {
+        this.characterBox.physicsImpostor.onCollide = (e) => {
             this.falling = false;
             this.startIdleAni();
             console.log("player hit something")
-        });
+        };
 
 
         if(this.scene.physicsPlugin) {
@@ -124,7 +123,9 @@ class Player {
                 }
     
                 /// lock rotations in cannon.js
-                body.fixedRotation = true;
+                if(body.fixedRotation != null) {
+                    body.fixedRotation = true;
+                }
                 if(typeof body.updateMassProperties  === "function") {
                     body.updateMassProperties();
                 }
@@ -314,12 +315,23 @@ class Player {
         velocity = velocity.normalize();
         velocity = velocity.scale(this.sprint ? this.sprintSpeedMax : this.moveSpeedMax);
         
-        /// option 1: set velocity, blocks other impacts
-        // this.characterBox.physicsImpostor.setLinearVelocity(velocity);
+        /// option 1: combine velocities
+        var simulatedVelocity = this.characterBox.physicsImpostor.getLinearVelocity();
+        var inputVelocity = velocity.scale(4);
 
-        /// option 2: applyForce
-        this.characterBox.physicsImpostor.applyForce(velocity.scale(5), new BABYLON.Vector3(0,0,0));
+        var resVelx = Math.abs(simulatedVelocity.x) < Math.abs(inputVelocity.x) || Math.sign(simulatedVelocity.x) != Math.sign(inputVelocity.x) ? inputVelocity.x : simulatedVelocity.x; 
+        var resVely = Math.abs(simulatedVelocity.y) < Math.abs(inputVelocity.y) || Math.sign(simulatedVelocity.y) != Math.sign(inputVelocity.y) ? inputVelocity.y : simulatedVelocity.y; 
+        var resVelz = Math.abs(simulatedVelocity.z) < Math.abs(inputVelocity.z) || Math.sign(simulatedVelocity.z) != Math.sign(inputVelocity.z) ? inputVelocity.z : simulatedVelocity.z; 
+        resVely = simulatedVelocity.y;
         
+        // var deltaVelocity = new BABYLON.Vector3(    
+        //     Math.abs(simulatedVelocity.x) < Math.abs(inputVelocity.x) || Math.sign(simulatedVelocity.x) != Math.sign(inputVelocity.x) ? 
+        // );
+        this.characterBox.physicsImpostor.setLinearVelocity( new BABYLON.Vector3(resVelx, resVely, resVelz));
+        
+        /// option 2: applyForce
+        //this.characterBox.physicsImpostor.applyForce(velocity.scale(5), new BABYLON.Vector3(0,0,0));
+    
         // copy heading to charcter mesh
         if(this.inputMoveVec.length() > 0) {
             this.mesh.rotation.y = heading;
