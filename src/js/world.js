@@ -68,7 +68,7 @@ export default class World {
             BABYLON.PhysicsImpostor.BoxImpostor, 
             { 
                 mass: 0,
-                friction: 0.1
+                friction: 0
             }, 
             scene);
     
@@ -80,16 +80,16 @@ export default class World {
             test_level_model);   
 
         levelLoadTask.onSuccess = () => {
-            console.log(levelLoadTask);
+            // console.log(levelLoadTask);
 
             // start ambient animations
             levelLoadTask.loadedAnimationGroups.forEach(animation => {
                 animation.start(true);
             });
-            console.log("levelTask: ", levelLoadTask);
+            // console.log("levelTask: ", levelLoadTask);
             levelLoadTask.loadedMeshes.forEach((mesh) => {
                 this.collision_meshes.push(mesh);
-                console.log("Add Mesh to Collision: ", mesh);
+                // console.log("Add Mesh to Collision: ", mesh);
                 mesh.checkCollisions = true;
                 // mesh.material.wireframe = true;
             });

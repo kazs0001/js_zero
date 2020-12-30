@@ -8,7 +8,6 @@ import sprint_sound from '../assets/sound/simple_sprint.mp3';
 
 
 import { KEYCODE } from "./key_codes";
-import { cssNumber } from "jquery";
 
 
 class Player {
@@ -63,6 +62,8 @@ class Player {
         this.scene.activeCamera = this.camera;
         
         
+
+        
         // physical representation --------------------------------------------
         this.characterBox = BABYLON.MeshBuilder.CreateSphere(
             "PlayerSphere", 
@@ -80,12 +81,14 @@ class Player {
         this.characterBox.scaling.y = this.characterHeight;
         this.characterBox.scaling.z = this.characterDepth;
         this.characterBox.position = this.world.player_start_position;
-        this.characterBox.checkCollisions = true;
+        // this.characterBox.checkCollisions = true;
         this.characterBox.ellipsoid = new BABYLON.Vector3(
             this.characterWidth/2, 
             this.characterHeight/2, 
             this.characterDepth/2);
         this.characterBox.material = new BABYLON.StandardMaterial();
+        this.characterBox.material.emissiveColor = new BABYLON.Color4(0, 1, 0, 1);
+
         this.characterBox.material.wireframe = true;
         this.camera.lockedTarget = this.characterBox;        
     
@@ -99,17 +102,27 @@ class Player {
             this.characterBox, 
             BABYLON.PhysicsImpostor.SphereImpostor, 
             { 
-                mass: 1, 
-                damping: 0, 
+                mass: this.characterWeight, 
+                damping: 1, 
                 restitution: 0,
-                friction: 5
+                friction: 0
 
             }, 
             scene);
 
+        this.characterBox.physicsImpostor.registerOnPhysicsCollide(
+            this.world.box.physicsImpostor,
+            (self, other) => {
+                console.log("COLLISION", self, other);
+                this.falling = false;
+                if(this.walkAni) {
+                    this.startIdleAni();
+                }
+            }
+        );
+
+
         this.characterBox.physicsImpostor.onCollide = (e) => {
-            this.falling = false;
-            this.startIdleAni();
             console.log("player hit something")
         };
 
@@ -133,12 +146,11 @@ class Player {
             });
         }
 
-
     
         // player internal movement state -------------------------------------
         this.falling = true;
         this.fallingVel = 0;
-        this.jumpSpeed = 400;
+        this.jumpSpeed = 30000;
         this.moveVel = 0;
         this.moveSpeedMax = 5; 
         this.sprintSpeedMax = 12;
@@ -177,6 +189,8 @@ class Player {
         
         assetTask.onSuccess = () => {
             this.mesh = assetTask.loadedMeshes[0];
+//             this.characterBox.addChild(this.mesh);
+            
             this.animation = assetTask.loadedAnimationGroups[0];
             
             world.shadowGenerator.addShadowCaster(this.mesh);
@@ -270,7 +284,7 @@ class Player {
         if (keyEvent.keyCode == KEYCODE.DOWN || keyEvent.keyCode == KEYCODE.S) {
             this.inputMoveVec.z = keyPressed ? 1 : 0;
         }  
-        if (keyEvent.keyCode == KEYCODE.SPACEBAR){ // && !this.falling && keyPressed){
+        if (keyEvent.keyCode == KEYCODE.SPACEBAR && !this.falling && keyPressed){
             this.falling = true;
             console.log("jump")
             if (this.animation && !this.jumpAni.isPlaying) {
@@ -301,50 +315,41 @@ class Player {
     update(dTimeMs) {
         const dTimeSec = dTimeMs / 1000;
 
-        // ugly workaround to lock rotation on physic imposter, this is only necessary if we dont use fixedRotation (a cannon.js feature)
-        // this.characterBox.physicsImpostor.setAngularVelocity( new BABYLON.Vector3(0,0,0) );
-        
-        /// setLinearVelocity, stops character if accelerated externally
         var heading = Math.PI/2 -  this.camera.alpha;
+
         const rotation_matrix = new BABYLON.Matrix.RotationYawPitchRoll(
             heading,
             0,
             0);
+
         var velocity = this.inputMoveVec.clone();
         velocity = BABYLON.Vector3.TransformCoordinates(velocity, rotation_matrix);
         velocity = velocity.normalize();
         velocity = velocity.scale(this.sprint ? this.sprintSpeedMax : this.moveSpeedMax);
         
-        /// option 1: combine velocities
         var simulatedVelocity = this.characterBox.physicsImpostor.getLinearVelocity();
-        var inputVelocity = velocity.scale(4);
 
-        var resVelx = Math.abs(simulatedVelocity.x) < Math.abs(inputVelocity.x) || Math.sign(simulatedVelocity.x) != Math.sign(inputVelocity.x) ? inputVelocity.x : simulatedVelocity.x; 
-        var resVely = Math.abs(simulatedVelocity.y) < Math.abs(inputVelocity.y) || Math.sign(simulatedVelocity.y) != Math.sign(inputVelocity.y) ? inputVelocity.y : simulatedVelocity.y; 
-        var resVelz = Math.abs(simulatedVelocity.z) < Math.abs(inputVelocity.z) || Math.sign(simulatedVelocity.z) != Math.sign(inputVelocity.z) ? inputVelocity.z : simulatedVelocity.z; 
+        var resVelx = Math.abs(simulatedVelocity.x) < Math.abs(velocity.x) || Math.sign(simulatedVelocity.x) != Math.sign(velocity.x) ? velocity.x : simulatedVelocity.x; 
+        var resVely = Math.abs(simulatedVelocity.y) < Math.abs(velocity.y) || Math.sign(simulatedVelocity.y) != Math.sign(velocity.y) ? velocity.y : simulatedVelocity.y; 
+        var resVelz = Math.abs(simulatedVelocity.z) < Math.abs(velocity.z) || Math.sign(simulatedVelocity.z) != Math.sign(velocity.z) ? velocity.z : simulatedVelocity.z; 
+
+        // overwrite height axis for jumping / falling 
         resVely = simulatedVelocity.y;
         
-        // var deltaVelocity = new BABYLON.Vector3(    
-        //     Math.abs(simulatedVelocity.x) < Math.abs(inputVelocity.x) || Math.sign(simulatedVelocity.x) != Math.sign(inputVelocity.x) ? 
-        // );
         this.characterBox.physicsImpostor.setLinearVelocity( new BABYLON.Vector3(resVelx, resVely, resVelz));
-        
-        /// option 2: applyForce
-        //this.characterBox.physicsImpostor.applyForce(velocity.scale(5), new BABYLON.Vector3(0,0,0));
-    
+  
+
         // copy heading to charcter mesh
-        if(this.inputMoveVec.length() > 0) {
-            this.mesh.rotation.y = heading;
+        if(this.mesh && this.inputMoveVec.length() > 0) {
+            this.mesh.rotation = new BABYLON.Quaternion.FromRotationMatrix( rotation_matrix );
         }
  
         if(this.mesh) {
-            this.mesh.rotation = this.characterBox.rotation;
+            this.mesh.rotation.y = heading;
             this.mesh.position.x = this.characterBox.position.x;
             this.mesh.position.z = this.characterBox.position.z;
             this.mesh.position.y = this.characterBox.position.y - 0.9;
         }
-
-
 
         if (this.animation) {
             if (!this.falling && this.inputMoveVec.length() > 0.1) {
@@ -365,87 +370,12 @@ class Player {
             }
         }
 
+        if (this.falling) {
+            this.characterBox.material.emissiveColor = new BABYLON.Color4(1, 0, 0, 1);
+        } else {
+            this.characterBox.material.emissiveColor = new BABYLON.Color4(0, 1, 0, 1);
+        }
 
-
-
-        // TODO
-        // detailed movement model using accelerations
-        // console.log("Contact: ", this.contactRay.intersectsMesh(this.world.plane, false));
-
-        // this.moveVel += this.inputVec.scale(dTimeSec);
-
-        // if (this.moveVel > this.moveSpeedMax) {
-        //     this.moveVel.normalize().scale(this.moveSpeedMax);
-        // }
-
-        // if(this.moveAcc > 0)
-
-        // const localInput = new BABYLON.Vector3(
-        //     Math.sin(this.box.rotation.y),
-        //     0,
-        //     Math.cos(this.box.rotation.y)
-        // );
-         
-        // const rotation_matrix = new BABYLON.Matrix.RotationYawPitchRoll(
-        //     this.characterBox.rotation.y,
-        //     0,
-        //     0);
-        
-        // if (this.falling) {
-        //     this.fallingVel += (this.world.gravity * dTimeSec* 2);
-        // } else {
-        //     this.fallingVel = -0.01;
-        // }
-
-        // this.fallVec = new BABYLON.Vector3(
-        //     0,
-        //     this.fallingVel,
-        //     0);
-        
-        // if(this.inputMoveVec.length() > 0.1){
-        //     this.mesh.rotation.y = Math.PI/2 -  this.camera.alpha; // copy rotation from camera orientation
-        // }
-
-        // if (this.animation) {
-        //     if (!this.falling && this.inputMoveVec.length() > 0.1) {
-        //         if (this.sprint) {
-        //             if (!this.sprintAni.isPlaying) {
-        //                 this.startSprintAni();
-        //             }
-        //         } else {
-        //             if (!this.walkAni.isPlaying) {
-        //                 this.startWalkAni();
-        //             }
-        //         }
-
-        //     } else {
-        //         if (!this.idleAni.isPlaying && !this.falling) {
-        //             this.startIdleAni();
-        //         }
-        //     }
-        // }
-
-        // let speed = this.sprint ? this.sprintSpeedMax : this.moveSpeedMax;
-        // this.characterBox.moveWithCollisions(
-        //     this.fallVec.scale(dTimeSec).add(
-        //         BABYLON.Vector3.TransformCoordinates(
-        //             this.inputMoveVec.scale(speed * dTimeSec), 
-        //             rotation_matrix)));
-
-        // const pick = this.contactRay.intersectsMeshes(
-        //     this.world.collision_meshes, 
-        //     false);
-            
-        // if (this.characterBox && pick.length) {
-        //     this.characterBox.material.emissiveColor = new BABYLON.Color4(1, 0, 0, 1);
-        //     this.falling = false;
-        // } else {
-        //     this.characterBox.material.emissiveColor = new BABYLON.Color4(0, 1, 0, 1);
-        //     if (!this.falling) {
-        //         this.startJumpAni();
-        //     }
-        //     this.falling = true;
-        // }
     }
 
     activate() {
