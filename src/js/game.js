@@ -3,7 +3,11 @@ import World from './world';
 import { DebugView } from "./debug_view";
 
 import * as cannon from "cannon";
+
+// ammo npm package does not work together with babylon.js currently 
 // import * as Ammo from "ammo.js";
+
+// this hard-copy integrates well but building with webpack takes forever
 // import * as Ammo from "./external/ammo.js";
 
 
@@ -68,6 +72,12 @@ class Game {
         };
         
         this.engine.enterPointerlock();
+    }
+
+    handleMouseInput(mouseEvent) {
+        if(!this.debug_mode) {
+            this.player.handleMouseInput(mouseEvent);
+        }
     }
 
     // input forwarding -------------------------------------------------------

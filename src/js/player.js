@@ -163,6 +163,8 @@ class Player {
         this.inputMoveVec = new BABYLON.Vector3(0, 0, 0);
         this.inputRotateY = 0;
 
+        this.heading = 0;
+
         this.contactRay = new BABYLON.Ray(
             this.characterBox.position,
             new BABYLON.Vector3(0, -1, 0));
@@ -250,6 +252,12 @@ class Player {
         this.sound_sprint.play();
     }
 
+
+    handleMouseInput(mouseEvent) {
+        this.heading = Math.PI/2 -  this.camera.alpha;
+    }
+
+
     // process player input ---------------------------------------------------
     handleInput(keyEvent) {
         const keyPressed = keyEvent.type == "keydown";
@@ -315,7 +323,8 @@ class Player {
     update(dTimeMs) {
         const dTimeSec = dTimeMs / 1000;
 
-        var heading = Math.PI/2 -  this.camera.alpha;
+        var heading = this.heading;
+        // var heading = Math.PI/2 -  this.camera.alpha;
 
         const rotation_matrix = new BABYLON.Matrix.RotationYawPitchRoll(
             heading,

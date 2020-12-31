@@ -54,6 +54,10 @@ class App {
       this.game.handleInput(event);
     });
 
+    document.body.addEventListener("mousemove", (event) => {
+      this.game.handleMouseInput(event);
+    });
+
     // catch the cursor to control the camera
     if (!this.env.isMobile) {
       document.body.addEventListener("click", (event) => {
