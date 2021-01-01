@@ -1,7 +1,6 @@
 # JS-Zero, a Online-RPG Prototype
 Technical notes and documentation
 
-
 # Testing
 
 * **2020-12-25:** 
@@ -25,6 +24,10 @@ Technical notes and documentation
         * animations: turning, strafing (left, right)
         * model plate boots
         * evalute if controls cant get rid of mouse input (just simple tombraider controls?)
+
+
+* **2021-01-01:**
+The movement issue is caused by the combination of simulated and intended velocity (aka CharacterController) 
 
 
 # Game Composition

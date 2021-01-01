@@ -44,7 +44,7 @@ class Game {
 
 
         // attach to scene
-        this.scene.physicsPlugin = new BABYLON.CannonJSPlugin(true, 10, cannon);
+        this.scene.physicsPlugin = new BABYLON.CannonJSPlugin(true, 5, cannon);
         // this.scene.physicsPlugin = new BABYLON.AmmoJSPlugin(false, Ammo );
 
         this.gravityVector = new BABYLON.Vector3(0,-9.81, 0);

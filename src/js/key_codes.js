@@ -6,7 +6,7 @@ var KEYCODE = {
     DOWN: 40,
     W : 87,
     A : 65,
-    W : 83,
+    S : 83,
     D : 68,
     SPACEBAR: 32,
     SHIFT: 16

@@ -86,12 +86,49 @@ export default class World {
             levelLoadTask.loadedAnimationGroups.forEach(animation => {
                 animation.start(true);
             });
+
             // console.log("levelTask: ", levelLoadTask);
             levelLoadTask.loadedMeshes.forEach((mesh) => {
                 this.collision_meshes.push(mesh);
                 // console.log("Add Mesh to Collision: ", mesh);
-                mesh.checkCollisions = true;
+                // mesh.checkCollisions = true;
+                // mesh.material = new BABYLON.StandardMaterial();
+                // mesh.material.emissiveColor = new BABYLON.Color3(1,0,0);
                 // mesh.material.wireframe = true;
+                // mesh.isVisible = false;
+
+                // console.log(mesh)
+                // var box = BABYLON.MeshBuilder.CreateBox("myname", 1, scene);
+
+                // box.scaling.x = mesh.scaling.x;
+                // box.material = mesh.material;
+                // console.log(box)
+
+                // var box = new BABYLON.MeshBuilder.CreateBox(
+                //     `${mesh.anme}`, 
+                //     {
+                //         width: mesh.width, 
+                //         height: mesh.height, 
+                //         depth: mesh.depth
+                //     },
+                //     scene
+                // );
+
+                // box.position = mesh._position;
+                // box.scaling = mesh._scaling;
+                // box.rotationQuaternion = mesh._rotationQuaternion;
+
+                // var imposter = new BABYLON.PhysicsImpostor(
+                //     box, 
+                //     BABYLON.PhysicsImpostor.BoxImpostor, 
+                //     { 
+                //         mass: 0, 
+                //         damping: 0, 
+                //         restitution: 0,
+                //         friction: 0
+        
+                //     }, 
+                //     scene);
             });
         }
 

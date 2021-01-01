@@ -8,6 +8,7 @@ import sprint_sound from '../assets/sound/simple_sprint.mp3';
 
 
 import { KEYCODE } from "./key_codes";
+import { random } from "node-forge";
 
 
 class Player {
@@ -89,6 +90,8 @@ class Player {
         this.characterBox.material = new BABYLON.StandardMaterial();
         this.characterBox.material.emissiveColor = new BABYLON.Color4(0, 1, 0, 1);
 
+        this.characterBox.visibility = false;
+
         this.characterBox.material.wireframe = true;
         this.camera.lockedTarget = this.characterBox;        
     
@@ -103,7 +106,7 @@ class Player {
             BABYLON.PhysicsImpostor.SphereImpostor, 
             { 
                 mass: this.characterWeight, 
-                damping: 1, 
+                damping: 0, 
                 restitution: 0,
                 friction: 0
 
@@ -191,7 +194,7 @@ class Player {
         
         assetTask.onSuccess = () => {
             this.mesh = assetTask.loadedMeshes[0];
-//             this.characterBox.addChild(this.mesh);
+            this.characterBox.addChild(this.mesh);
             
             this.animation = assetTask.loadedAnimationGroups[0];
             
@@ -205,12 +208,19 @@ class Player {
             this.idleAni.stop();
             this.sprintAni = this.walkAni.clone();
             this.sprintAni.stop();
-            
-            // this.characterBox.visibility = false;
+        
             this.startIdleAni();
         }
 
+        this.path = [
+            this.characterBox.position,
+            this.characterBox.position + this.inputMoveVec
+        ];
+    
+//        this.linesMesh = BABYLON.Mesh.CreateLines("lines", this.path, this.scene, true);
+
     }
+
 
     getTotalWeight() {
         return this.characterWeight; // + items later
@@ -323,10 +333,18 @@ class Player {
     update(dTimeMs) {
         const dTimeSec = dTimeMs / 1000;
 
-        var heading = this.heading;
-        // var heading = Math.PI/2 -  this.camera.alpha;
 
-        const rotation_matrix = new BABYLON.Matrix.RotationYawPitchRoll(
+        this.path = [
+            this.characterBox.position,
+            this.characterBox.position.add(this.inputMoveVec)
+        ];
+    
+        // this.linesMesh = new BABYLON.Mesh.CreateLines("lines", this.path, this.scene, true);
+
+        // var heading = this.heading;
+        var heading = Math.PI/2 -  this.camera.alpha;
+
+        var rotation_matrix = new BABYLON.Matrix.RotationYawPitchRoll(
             heading,
             0,
             0);
@@ -338,27 +356,34 @@ class Player {
         
         var simulatedVelocity = this.characterBox.physicsImpostor.getLinearVelocity();
 
-        var resVelx = Math.abs(simulatedVelocity.x) < Math.abs(velocity.x) || Math.sign(simulatedVelocity.x) != Math.sign(velocity.x) ? velocity.x : simulatedVelocity.x; 
-        var resVely = Math.abs(simulatedVelocity.y) < Math.abs(velocity.y) || Math.sign(simulatedVelocity.y) != Math.sign(velocity.y) ? velocity.y : simulatedVelocity.y; 
-        var resVelz = Math.abs(simulatedVelocity.z) < Math.abs(velocity.z) || Math.sign(simulatedVelocity.z) != Math.sign(velocity.z) ? velocity.z : simulatedVelocity.z; 
+        var resVelx = Math.abs(simulatedVelocity.x)*0.7 <= Math.abs(velocity.x) || Math.sign(simulatedVelocity.x) != Math.sign(velocity.x) ? velocity.x : simulatedVelocity.x; 
+        var resVely = Math.abs(simulatedVelocity.y)*0.7 <= Math.abs(velocity.y) || Math.sign(simulatedVelocity.y) != Math.sign(velocity.y) ? velocity.y : simulatedVelocity.y; 
+        var resVelz = Math.abs(simulatedVelocity.z)*0.7 <= Math.abs(velocity.z) || Math.sign(simulatedVelocity.z) != Math.sign(velocity.z) ? velocity.z : simulatedVelocity.z; 
 
         // overwrite height axis for jumping / falling 
         resVely = simulatedVelocity.y;
         
+        // resVelx = velocity.x;
+        // resVelz = velocity.z;
+        
+        
         this.characterBox.physicsImpostor.setLinearVelocity( new BABYLON.Vector3(resVelx, resVely, resVelz));
+        // this.characterBox.physicsImpostor.setLinearVelocity( velocity );
   
 
         // copy heading to charcter mesh
         if(this.mesh && this.inputMoveVec.length() > 0) {
-            this.mesh.rotation = new BABYLON.Quaternion.FromRotationMatrix( rotation_matrix );
+            // this.mesh.rotation = new BABYLON.Quaternion.FromRotationMatrix( rotation_matrix );
+            this.mesh.rotation = new BABYLON.Vector3(Math.PI,  heading, 0);
+
         }
  
-        if(this.mesh) {
-            this.mesh.rotation.y = heading;
-            this.mesh.position.x = this.characterBox.position.x;
-            this.mesh.position.z = this.characterBox.position.z;
-            this.mesh.position.y = this.characterBox.position.y - 0.9;
-        }
+        // if(this.mesh) {
+        //     this.mesh.rotation.y = heading;
+        //     this.mesh.position.x = this.characterBox.position.x;
+        //     this.mesh.position.z = this.characterBox.position.z;
+        //     this.mesh.position.y = this.characterBox.position.y - 0.9;
+        // }
 
         if (this.animation) {
             if (!this.falling && this.inputMoveVec.length() > 0.1) {
